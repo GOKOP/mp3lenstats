@@ -10,6 +10,6 @@ go build
 
 ## Usage
 ```
-mp3length music/*.mp3
+mp3lenstats music/*.mp3
 ```
 will give you length of each track, mean average length of all tracks, median of all tracks, the largest length and the shortest length.
