@@ -6,20 +6,27 @@ import (
 	"time"
 	"sort"
 	"strconv"
+	"strings"
 	"github.com/tcolgate/mp3"
 )
 
 func main() {
+	// get language in the form of "en", "pl", "ru" etc. on Unix systems
+	// its not perfect but the worst case scenario is that the user gets English
+	// as for non-Unicode locales, I'll just hope that no one will run this on them ;)
+	lang := strings.Split(os.Getenv("LANG"), "_")[0]
+	locale := createLocale(lang)
+
 	// ignoring the command name
-	filenames := getArguments()[1:]
+	filenames := getArguments(locale)[1:]
 	durations := getAndPrintDurations(filenames)
 
 	fmt.Println("")
 
-	fmt.Println("Mean:", formatDuration(calcMeanDur(durations)))
-	fmt.Println("Median:", formatDuration(calcMedianDur(durations)))
-	fmt.Println("Max:", formatDuration(getMaxDur(durations)))
-	fmt.Println("Min:", formatDuration(getMinDur(durations)))
+	fmt.Println(locale["mean"], formatDuration(calcMeanDur(durations)))
+	fmt.Println(locale["median"], formatDuration(calcMedianDur(durations)))
+	fmt.Println(locale["max"], formatDuration(getMaxDur(durations)))
+	fmt.Println(locale["min"], formatDuration(getMinDur(durations)))
 }
 
 // I don't like how time.Duration is formatted by default
@@ -30,10 +37,10 @@ func formatDuration(duration time.Duration) string {
 	return strconv.Itoa(minutes) + "m " + strconv.Itoa(seconds) + "s"
 }
 
-func getArguments() []string {
+func getArguments(locale map[string]string) []string {
 	args := os.Args;
 	if(len(args) <= 1) {
-		panic("You must give an argument!")
+		panic(locale["noArgument"])
 	} else {
 		return args
 	}
@@ -129,4 +136,25 @@ func getMinDur(durations []time.Duration) time.Duration {
 	}
 
 	return min
+}
+
+func createLocale(language string) map[string]string {
+	switch language {
+		case "pl":
+			return map[string]string {
+				"mean": "Średnia:",
+				"median": "Mediana:",
+				"max": "Max:",
+				"min": "Min:",
+				"noArgument": "Musisz podać argumenty!",
+			}
+		default:
+			return map[string]string {
+				"mean": "Mean:",
+				"median": "Median:",
+				"max": "Max:",
+				"min": "Min:",
+				"noArgument": "You must provide arguments!",
+			}
+	}
 }
