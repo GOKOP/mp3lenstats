@@ -75,20 +75,19 @@ func getAndPrintDurations(filenames []string) []time.Duration {
 }
 
 func calcMeanDur(durations []time.Duration) time.Duration {
-	// converting from Duration to int for arithmetics
-	var sumNanos int64
+	var sum time.Duration
 
 	for _, dur := range durations {
-		sumNanos += dur.Nanoseconds()
+		sum += dur
 	}
 
-	avgNanos := sumNanos / int64(len(durations))
-	return time.Duration(avgNanos)
+	// converting length to Duration so that it can divide
+	avg := sum / time.Duration(len(durations))
+	return avg
 }
 
 func calcMedianDur(durations []time.Duration) time.Duration {
-	// converting from Duration to int for arithmetics
-	// (not int64 because of sort.Ints(), should be the same on modern systems I think)
+	// converting from Duration to int because of sort.Ints()
 	var durationsNanos []int
 
 	for _, dur := range durations {
