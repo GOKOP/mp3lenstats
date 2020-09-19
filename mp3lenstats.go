@@ -19,10 +19,11 @@ func main() {
 
 	// ignoring the command name
 	filenames := getArguments(locale)[1:]
-	durations := getAndPrintDurations(filenames)
+	durations, number := getAndPrintDurations(filenames)
 
 	fmt.Println("")
 
+	fmt.Println(locale["fileNumber"], number)
 	fmt.Println(locale["mean"], formatDuration(calcMeanDur(durations)))
 	fmt.Println(locale["median"], formatDuration(calcMedianDur(durations)))
 	fmt.Println(locale["max"], formatDuration(getMaxDur(durations)))
@@ -53,8 +54,9 @@ func getArguments(locale map[string]string) []string {
 	}
 }
 
-func getAndPrintDurations(filenames []string) []time.Duration {
+func getAndPrintDurations(filenames []string) ([]time.Duration, int) {
 	var durations []time.Duration
+	number := 0 // number of files
 
 	for _, arg := range filenames {
 		reader, err := os.Open(arg)
@@ -82,10 +84,11 @@ func getAndPrintDurations(filenames []string) []time.Duration {
 		}
 
 		durations = append(durations, duration)
+		number += 1
 		fmt.Println(arg, ":", formatDuration(duration))
 	}
 
-	return durations
+	return durations, number
 }
 
 func calcMeanDur(durations []time.Duration) time.Duration {
@@ -153,6 +156,7 @@ func createLocale(language string) map[string]string {
 				"median": "Mediana:",
 				"max": "Max:",
 				"min": "Min:",
+				"fileNumber": "Liczba plików:",
 				"noArgument": "Musisz podać argumenty!",
 			}
 		default:
@@ -161,6 +165,7 @@ func createLocale(language string) map[string]string {
 				"median": "Median:",
 				"max": "Max:",
 				"min": "Min:",
+				"fileNumber": "Number of files:",
 				"noArgument": "You must provide arguments!",
 			}
 	}
