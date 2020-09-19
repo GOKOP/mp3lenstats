@@ -29,6 +29,11 @@ func main() {
 	fmt.Println(locale["min"], formatDuration(getMinDur(durations)))
 }
 
+func dontPanic(err string) {
+	fmt.Println(err)
+	os.Exit(1)
+}
+
 // I don't like how time.Duration is formatted by default
 func formatDuration(duration time.Duration) string {
 	minutes := int(duration.Minutes())
@@ -40,7 +45,9 @@ func formatDuration(duration time.Duration) string {
 func getArguments(locale map[string]string) []string {
 	args := os.Args;
 	if(len(args) <= 1) {
-		panic(locale["noArgument"])
+		dontPanic(locale["noArgument"])
+		return []string{"pancakes"} // dead code but the compiler screams at me otherwise
+
 	} else {
 		return args
 	}
@@ -53,7 +60,7 @@ func getAndPrintDurations(filenames []string) []time.Duration {
 		reader, err := os.Open(arg)
 
 		if err != nil {
-			panic(err)
+			dontPanic(err.Error())
 		}
 
 		decoder := mp3.NewDecoder(reader)
@@ -67,7 +74,7 @@ func getAndPrintDurations(filenames []string) []time.Duration {
 				if err.Error() == "EOF" {
 					break
 				} else {
-					panic(err)
+					dontPanic(err.Error())
 				}
 			}
 
