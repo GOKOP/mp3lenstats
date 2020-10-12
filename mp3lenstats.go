@@ -19,15 +19,20 @@ func main() {
 
 	// ignoring the command name
 	filenames := getArguments(locale)[1:]
-	durations, number := getAndPrintDurations(filenames)
+	durationsMap, number := getAndPrintDurations(filenames)
+	durationsArray := extractDurations(durationsMap)
 
 	fmt.Println("")
 
 	fmt.Println(locale["fileNumber"], number)
-	fmt.Println(locale["mean"], formatDuration(calcMeanDur(durations)))
-	fmt.Println(locale["median"], formatDuration(calcMedianDur(durations)))
-	fmt.Println(locale["max"], formatDuration(getMaxDur(durations)))
-	fmt.Println(locale["min"], formatDuration(getMinDur(durations)))
+	fmt.Println(locale["mean"], formatDuration(calcMeanDur(durationsArray)))
+	fmt.Println(locale["median"], formatDuration(calcMedianDur(durationsArray)))
+
+	longestFile, longestDur := getMaxDur(durationsMap)
+	shortestFile, shortestDur := getMinDur(durationsMap)
+
+	fmt.Println(locale["max"], formatDuration(longestDur), longestFile)
+	fmt.Println(locale["min"], formatDuration(shortestDur), shortestFile)
 }
 
 func dontPanic(err string) {
@@ -54,8 +59,8 @@ func getArguments(locale map[string]string) []string {
 	}
 }
 
-func getAndPrintDurations(filenames []string) ([]time.Duration, int) {
-	var durations []time.Duration
+func getAndPrintDurations(filenames []string) (map[string]time.Duration, int) {
+	durations := make(map[string]time.Duration)
 	number := 0 // number of files
 
 	for _, arg := range filenames {
@@ -83,12 +88,22 @@ func getAndPrintDurations(filenames []string) ([]time.Duration, int) {
 			duration += frame.Duration()
 		}
 
-		durations = append(durations, duration)
+		durations[arg] = duration
 		number += 1
 		fmt.Println(arg, ":", formatDuration(duration))
 	}
 
 	return durations, number
+}
+
+func extractDurations(durMap map[string]time.Duration) []time.Duration {
+	var durArray []time.Duration
+
+	for _, value := range durMap {
+		durArray = append(durArray, value)
+	}
+
+	return durArray
 }
 
 func calcMeanDur(durations []time.Duration) time.Duration {
@@ -124,28 +139,32 @@ func calcMedianDur(durations []time.Duration) time.Duration {
 	}
 }
 
-func getMaxDur(durations []time.Duration) time.Duration {
-	max := time.Duration(0)
+func getMaxDur(durations map[string]time.Duration) (string, time.Duration) {
+	maxVal := time.Duration(0)
+	maxKey := ""
 
-	for _,dur := range durations {
-		if dur > max {
-			max = dur
+	for key, dur := range durations {
+		if dur > maxVal {
+			maxVal = dur
+			maxKey = key
 		}
 	}
 
-	return max
+	return maxKey, maxVal
 }
 
-func getMinDur(durations []time.Duration) time.Duration {
-	min := durations[0]
+func getMinDur(durations map[string]time.Duration) (string, time.Duration) {
+	_, minVal := getMaxDur(durations) // seems dirty
+	minKey := ""
 
-	for _,dur := range durations {
-		if dur < min {
-			min = dur
+	for key, dur := range durations {
+		if dur < minVal {
+			minVal = dur
+			minKey = key
 		}
 	}
 
-	return min
+	return minKey, minVal
 }
 
 func createLocale(language string) map[string]string {
